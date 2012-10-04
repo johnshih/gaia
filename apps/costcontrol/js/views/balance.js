@@ -16,6 +16,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   var VIEW_TOPUP = 'topup-view';
   var DIALOG_SERVICE_UNAVAILABLE = 'service-unavailable-info-dialog';
   var DIALOG_APPLICATION_ERROR = 'application-error-info-dialog';
+  var DIALOG_UNSUPPORTED_CARRIER = 'unsupported-carrier';
 
   // Update balance control
   var _plantype;
@@ -148,6 +149,10 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     var btRequestTopUpButton =
       document.getElementById('balance-tab-topup-button');
     btRequestTopUpButton.addEventListener('click', _requestTopUp);
+
+    var btRequestUSSDTopUpButton =
+      document.getElementById('balance-tab-topup-ussd-button');
+    btRequestUSSDTopUpButton.addEventListener('click', _requestUSSDTopUp);
   }
 
   // TODO: remove when autofocus became available from B2G
@@ -395,7 +400,11 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   function _init() {
     debug('Initializing Balance Tab');
     _configureUI();
-    _configureAutomaticUpdates();
+
+    if (CostControl.checkEnableConditions()) {
+      _configureAutomaticUpdates();
+    }
+
     _updateUI();
   }
 
@@ -419,6 +428,11 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
       return;
     }
 
+    if (!CostControl.checkEnableConditions()) {
+      viewManager.changeViewTo(DIALOG_UNSUPPORTED_CARRIER);
+      return;
+    }
+
     _setUpdatingMode(true); // this is cosmetic, as in the widget.js, this is
                             // only to produce the illusion that updating starts
                             // as soon as the button is pressed.
@@ -439,6 +453,16 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
       _setTopUpScreenMode(MODE_DEFAULT);
 
     viewManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
+  }
+
+  // Check for system availability. If so, ask for USSD topup.
+  function _requestUSSDTopUp() {
+    var status = CostControl.getServiceStatus();
+    if (status.detail in NO_SERVICE_ERRORS) {
+      viewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      return;
+    }
+    CostControl.requestUSSDTopUp();
   }
 
   // Enable / disable waiting mode for the UI
@@ -478,7 +502,8 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     // Check for low credit
     var balance = balanceObject ? balanceObject.balance : null;
     if (CostControl.settings.option('lowlimit') &&
-        balance && balance < CostControl.getLowLimitThreshold()) {
+        balance &&
+        balance < CostControl.settings.option('lowlimit_threshold')) {
 
       _balanceTab.classList.add('low-credit');
     } else {

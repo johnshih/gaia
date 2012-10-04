@@ -164,7 +164,7 @@ var OnCallHandler = (function onCallHandler() {
 
   /* === Settings === */
   var activePhoneSound = true;
-  SettingsListener.observe('phone.ring.incoming', true, function(value) {
+  SettingsListener.observe('ring.enabled', true, function(value) {
     activePhoneSound = !!value;
   });
 
@@ -179,14 +179,22 @@ var OnCallHandler = (function onCallHandler() {
     }
   });
 
+  // Setting up the SimplePhoneMatcher
+  var conn = window.navigator.mozMobileConnection;
+  if (conn) {
+    SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
+  }
+
   var ringtonePlayer = new Audio();
   ringtonePlayer.src = selectedPhoneSound;
   ringtonePlayer.loop = true;
 
   var activateVibration = true;
-  SettingsListener.observe('phone.vibration.incoming', false, function(value) {
+  SettingsListener.observe('vibration.enabled', true, function(value) {
     activateVibration = !!value;
   });
+
+  var screenLock;
 
   /* === Setup === */
   function setup() {
@@ -194,6 +202,7 @@ var OnCallHandler = (function onCallHandler() {
     toggleScreen();
 
     ProximityHandler.enable();
+    screenLock = navigator.requestWakeLock('screen');
 
     if (telephony) {
       // Somehow the muted property appears to true after initialization.
@@ -303,8 +312,6 @@ var OnCallHandler = (function onCallHandler() {
   }
 
   function handleFirstIncoming(call) {
-    var screenLock = navigator.requestWakeLock('screen');
-
     var vibrateInterval = 0;
     if (activateVibration) {
       vibrateInterval = window.setInterval(function vibrate() {
@@ -326,11 +333,6 @@ var OnCallHandler = (function onCallHandler() {
       ringing = false;
 
       window.clearInterval(vibrateInterval);
-
-      if (screenLock) {
-        screenLock.unlock();
-        screenLock = null;
-      }
 
       // The call wasn't picked up
       if (call.state == 'disconnected') {
@@ -394,6 +396,10 @@ var OnCallHandler = (function onCallHandler() {
       return;
 
     ProximityHandler.disable();
+    if (screenLock) {
+      screenLock.unlock();
+      screenLock = null;
+    }
 
     closing = true;
 
