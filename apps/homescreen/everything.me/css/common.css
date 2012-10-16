@@ -9,7 +9,7 @@
     height: 100%;
     background: transparent;
     background-size: 100% 100%;
-    font: normal 12px 'Open Sans', Sans-Serif;
+    font: normal 12px 'MozTT', Sans-Serif;
     text-align: left;
 }
 #evmeContainer * {
@@ -170,7 +170,8 @@
 #shortcuts-customize:before,
 .shortcut.add .thumb:before,
 #shortcuts-favorites li.on:before,
-#close-category
+#close-category,
+.keyboard-visible .clear-visible #button-clear
 {
     background-image: url('/everything.me/images/sprite.png');
     background-repeat: no-repeat;

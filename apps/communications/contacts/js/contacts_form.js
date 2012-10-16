@@ -26,7 +26,8 @@ contacts.Form = (function() {
       _,
       formView,
       nonEditableValues,
-      deviceContact;
+      deviceContact,
+      currentPhoto;
 
   var REMOVED_CLASS = 'removed';
   var FB_CLASS = 'facebook';
@@ -211,6 +212,13 @@ contacts.Form = (function() {
     }
   }
 
+  var onNewFieldClicked = function onNewFieldClicked(evt) {
+    var type = evt.target.dataset['fieldType'];
+    evt.preventDefault();
+    contacts.Form.insertField(type);
+    return false;
+  }
+
   var insertField = function insertField(type, object) {
     if (!type || !configs[type]) {
       console.error('Inserting field with unknown type');
@@ -246,8 +254,20 @@ contacts.Form = (function() {
       rendered.appendChild(removeFieldIcon(rendered.id));
     }
 
+    // Add event listeners
+    var boxTitle = rendered.querySelector('legend.action');
+    if (boxTitle) {
+      boxTitle.addEventListener('mousedown', onGoToSelectTag);
+    }
+
     container.appendChild(rendered);
     counters[type]++;
+  };
+
+  var onGoToSelectTag = function onGoToSelectTag(evt) {
+    evt.preventDefault();
+    Contacts.goToSelectTag(evt);
+    return false;
   };
 
 
@@ -277,7 +297,7 @@ contacts.Form = (function() {
     var photo = [];
     var isRemoved = thumbAction.classList.contains(REMOVED_CLASS);
     if (!isRemoved) {
-      photo = currentContact.photo;
+      photo = currentPhoto;
     }
     return photo;
   }
@@ -315,7 +335,8 @@ contacts.Form = (function() {
       myContact['category'] = currentContact['category'];
     }
 
-    myContact['photo'] = getCurrentPhoto();
+    myContact['photo'] = currentContact['photo'] || [];
+    myContact['photo'][0] = getCurrentPhoto();
 
     if (myContact.givenName || myContact.familyName) {
       var name = myContact.givenName || '';
@@ -501,11 +522,12 @@ contacts.Form = (function() {
   }
 
   var resetForm = function resetForm() {
+    currentPhoto = null;
     thumbAction.querySelector('p').classList.remove('hide');
     saveButton.removeAttribute('disabled');
     resetRemoved();
     currentContactId.value = '';
-    currentContact = null;
+    currentContact = {};
     givenName.value = '';
     familyName.value = '';
     company.value = '';
@@ -606,8 +628,7 @@ contacts.Form = (function() {
       var dataurl = this.result.url;  // A data URL for a 320x320 JPEG image
       dataURLToBlob(dataurl, function(blob) {
         Contacts.updatePhoto(blob, thumb);
-        currentContact.photo = currentContact.photo || [];
-        currentContact.photo[0] = blob;
+        currentPhoto = blob;
       });
 
       function dataURLToBlob(dataurl, callback) {
@@ -635,6 +656,7 @@ contacts.Form = (function() {
     'render': render,
     'insertField': insertField,
     'saveContact': saveContact,
+    'onNewFieldClicked': onNewFieldClicked,
     'pickImage': pickImage
   };
 })();

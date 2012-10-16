@@ -1,5 +1,6 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 var TrustedUIManager = {
@@ -26,7 +27,7 @@ var TrustedUIManager = {
       this._currentPopup = null;
     } else {
       this._lastDisplayedApp = WindowManager.getDisplayedApp();
-      WindowManager.setDisplayedApp(null);
+      WindowManager.launch(null);
     }
 
     this.popupContainer.dataset.trusty = true;
@@ -52,7 +53,7 @@ var TrustedUIManager = {
       self.container.removeChild(self._currentPopup);
       delete self._currentPopup;
 
-      WindowManager.setDisplayedApp(self._lastDisplayedApp);
+      WindowManager.launch(self._lastDisplayedApp);
       self._lastDisplayedApp = null;
 
       if (callback)
@@ -81,8 +82,9 @@ var TrustedUIManager = {
           this.close();
         break;
     }
-  },
+  }
 
 };
 
 TrustedUIManager.init();
+

@@ -17,7 +17,8 @@ var Recents = {
 
   get recentsIconClose() {
     delete this.recentsIconClose;
-    return this.recentsIconClose = document.getElementById('cancel-button');
+    return this.recentsIconClose =
+      document.getElementById('recents-icon-close');
   },
 
   get recentsIconDelete() {
@@ -69,7 +70,7 @@ var Recents = {
       this.recentsFilterContainer.addEventListener('click',
         function re_recentsFilterHandler(event) {
           if (document.body.classList.contains('recents-edit')) {
-            self.recentsHeaderAction('cancel-button');
+            self.recentsHeaderAction('recents-icon-close');
           }
           self.filter(event);
       });
@@ -95,6 +96,10 @@ var Recents = {
         this.selectAllEntries.bind(this));
     }
     if (this.recentsContainer) {
+      this.recentsContainer.addEventListener('mousedown',
+        this.mouseDown.bind(this));
+      this.recentsContainer.addEventListener('mouseup',
+        this.mouseUp.bind(this));
       this.recentsContainer.addEventListener('click',
         this.click.bind(this));
     }
@@ -121,7 +126,7 @@ var Recents = {
           this.deselectSelectedEntries();
           document.body.classList.toggle('recents-edit');
           break;
-        case 'cancel-button': // Exit edit mode with no deletions
+        case 'recents-icon-close': // Exit edit mode with no deletions
           document.body.classList.toggle('recents-edit');
           break;
       }
@@ -151,9 +156,9 @@ var Recents = {
       var visibleCalls = this.recentsContainer.
         querySelectorAll('.log-item:not(.hide)');
       if (visibleCalls.length > 0) {
-        this.recentsIconEdit.classList.remove('disabled');
+        this.recentsIconEdit.parentNode.removeAttribute('aria-disabled');
       } else {
-        this.recentsIconEdit.classList.add('disabled');
+        this.recentsIconEdit.parentNode.setAttribute('aria-disabled', 'true');
       }
       if (document.body.classList.contains('recents-edit')) {
         var selectedCalls = this.recentsContainer.
@@ -185,9 +190,9 @@ var Recents = {
         var visibleCalls = this.recentsContainer.
           querySelectorAll('.log-item:not(.hide)');
         if (visibleCalls.length == 0) {
-          this.recentsIconEdit.classList.add('disabled');
+          this.recentsIconEdit.parentNode.setAttribute('aria-disabled', 'true');
         } else {
-          this.recentsIconEdit.classList.remove('disabled');
+          this.recentsIconEdit.parentNode.removeAttribute('aria-disabled');
         }
         if (document.body.classList.contains('recents-edit')) {
           var selectedCalls = this.recentsContainer.
@@ -318,7 +323,24 @@ var Recents = {
     return entriesInGroup;
   },
 
+  mouseDown: function re_mouseDown(event) {
+    this._mouseDownX = event.screenX;
+    this._mouseDownY = event.screenY;
+  },
+
+  mouseUp: function re_mouseUp(event) {
+    if (Math.abs(this._mouseDownX - event.screenX) > 10 ||
+      Math.abs(this._mouseDownY - event.screenY) > 10) {
+      this._ignoreClickEvent = true;
+    } else {
+      this._ignoreClickEvent = false;
+    }
+  },
+
   click: function re_click(event) {
+    if (this._ignoreClickEvent) {
+      return;
+    }
     var target = event.target;
     if (!target) {
       return;
@@ -458,11 +480,11 @@ var Recents = {
         ' </div>' +
         '</div>';
       navigator.mozL10n.translate(this.recentsContainer);
-      this.recentsIconEdit.classList.add('disabled');
+      this.recentsIconEdit.parentNode.setAttribute('aria-disabled', 'true');
       return;
     }
 
-    this.recentsIconEdit.classList.remove('disabled');
+    this.recentsIconEdit.parentNode.removeAttribute('aria-disabled');
 
     var self = this;
     window.asyncStorage.getItem('latestCallLogVisit', function getItem(value) {
@@ -670,4 +692,3 @@ window.addEventListener('localized', function recentsSetup() {
     FixedHeader.init('#recents-container', '#fixed-container', headerSelector);
     Recents.init();
 });
-
