@@ -53,6 +53,7 @@ function ComposeCard(domNode, mode, args) {
     containerList[i].addEventListener('click',
       this.onContainerClick.bind(this));
   }
+
   // Add attachments
   var attachmentsContainer =
     domNode.getElementsByClassName('cmp-attachments-container')[0];
@@ -63,12 +64,16 @@ function ComposeCard(domNode, mode, args) {
         filesizeTemplate =
           attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
     for (var i = 0; i < this.composer.attachments.length; i++) {
-      var attachment = body.attachments[i];
-      filenameTemplate.textContent = attachment.filename;
-      // XXX perform localized mimetype translation stuff
-      filesizeTemplate.textContent = this.formatFileSize(
-        attachment.sizeEstimateInBytes);
-      attachmentsContainer.appendChild(attTemplate.cloneNode(true));
+      var attachment = this.composer.attachments[i];
+      filenameTemplate.textContent = attachment.name;
+      filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
+      var attachmentNode = attTemplate.cloneNode(true);
+      attachmentsContainer.appendChild(attachmentNode);
+
+      attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
+        .addEventListener('click',
+                          this.onClickRemoveAttachment.bind(
+                            this, attachmentNode, attachment));
     }
   }
   else {
@@ -81,6 +86,7 @@ ComposeCard.prototype = {
     // hence this happens in postInsert.
     this._loadStateFromComposer();
   },
+
   _loadStateFromComposer: function() {
     var self = this;
     function expandAddresses(node, addresses) {
@@ -293,6 +299,11 @@ ComposeCard.prototype = {
     addBtn.classList.remove('show');
   },
 
+  onClickRemoveAttachment: function(node, attachment) {
+    node.parentNode.removeChild(node);
+    this.composer.removeAttachment(attachment);
+  },
+
   /**
    * Save the draft if there's anything to it, close the card.
    */
@@ -317,7 +328,7 @@ ComposeCard.prototype = {
     // XXX well-formedness-check (ideally just handle by not letting you send
     // if you haven't added anyone...)
 
-    this.composer.finishCompositionSendMessage(Toaster.trackSendMessage());
+    this.composer.finishCompositionSendMessage();
     if (this.shareActivity) {
       // XXX: Return value under window mode will cause crash easily, disable
       //      return and stay in email until inline mode is stable.
