@@ -16,6 +16,8 @@
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/status.css"/>
+  <!-- Include building blocks that not in shared folder yet -->
+  <link rel="stylesheet" type="text/css" href="style/custom_dialog.css">
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -23,6 +25,7 @@
   <script type="text/javascript" src="shared/js/l10n.js"></script>
   <script type="text/javascript" src="shared/js/l10n_date.js"></script>
   <script type="text/javascript" src="shared/js/gesture_detector.js"></script>
+  <script defer type="text/javascript" src="/shared/js/custom_dialog.js"></script>
   <!-- Specific code -->
   <script type="text/javascript">
     // when running in B2G, send output to the console, ANSI-style
@@ -647,10 +650,6 @@
                   2 WeekS</option>
                 <option value="1m" data-l10n-id="settings-synchronize-one-month">
                   1 MontH</option>
-                <option value="3m" data-l10n-id="settings-synchronize-three-months">
-                  3 MonthS</option>
-                <option value="6m" data-l10n-id="settings-synchronize-six-months">
-                  6 MonthS</option>
                 <option value="all" data-l10n-id="settings-synchronize-all">
                   AlL MessageS</option>
               </select>
@@ -842,8 +841,7 @@
     <div id="templ-sup">
       <!-- <button class="sup-service-choice"></button> -->
       <li class="sup-service-choice">
-        <button>
-          <span class="icon-view"></span>
+        <button class="icon icon-view">
           <a class="sup-service-choice-label"></a>
         </button>
       </li>
