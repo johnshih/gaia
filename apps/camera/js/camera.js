@@ -499,38 +499,45 @@ var Camera = {
     }
 
     // Launch the gallery with an open activity to view this specific photo
+    var camera = this;
     var filename = e.target.getAttribute('data-filename');
     var filetype = e.target.getAttribute('data-filetype');
     var storage = this._pictureStorage;
+    var getreq = storage.get(filename);
 
-    var a = new MozActivity({
-      name: 'open',
-      data: {
-        type: filetype,
-        filename: filename
-      }
-    });
-
-    // XXX: this seems like it should not be necessary
-    function reopen() {
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        evt.target.result.launch();
-      };
-    }
-
-    a.onerror = function(e) {
-      reopen();
-      console.warn('open activity error:', a.error.name);
+    getreq.onerror = function() {
+      console.warn('failed to get file:', filename, getreq.error.name);
     };
-    a.onsuccess = function(e) {
-      reopen();
 
-      if (a.result.delete) {
-        storage.delete(filename).onerror = function(e) {
-          console.error('Failed to delete', filename,
-                        'from DeviceStorage:', e.target.error);
-        };
-      }
+    getreq.onsuccess = function() {
+      var file = getreq.result;
+      var a = new MozActivity({
+        name: 'open',
+        data: {
+          type: filetype,
+          blob: file,
+          show_delete_button: true
+        }
+      });
+
+      // We don't seem to get a mozvisiblitychange event when the
+      // inline open activity opens up, so we explicitly stop the
+      // and restart the preview stream
+      camera.stopPreview();
+
+      a.onerror = function(e) {
+        console.warn('open activity error:', a.error.name);
+        camera.startPreview();
+      };
+      a.onsuccess = function(e) {
+        camera.startPreview();
+        if (a.result.delete) {
+          storage.delete(filename).onerror = function(e) {
+            console.warn('Failed to delete', filename,
+                         'from DeviceStorage:', e.target.error);
+          };
+        }
+      };
     };
   },
 
@@ -580,6 +587,9 @@ var Camera = {
       this._pictureSize =
         this.largestPictureSize(camera.capabilities.pictureSizes);
       this.enableCameraFeatures(camera.capabilities);
+      camera.onShutter = (function() {
+        this._shutterSound.play();
+      }).bind(this);
       camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
     }
     navigator.mozCameras.getCamera(options, gotCamera.bind(this));
@@ -639,10 +649,10 @@ var Camera = {
       var preview = document.createElement('img');
       wrapper.classList.add('thumbnail');
       wrapper.classList.add(/image/.test(image.type) ? 'image' : 'video');
-      wrapper.setAttribute('data-type', image.type);
+      wrapper.setAttribute('data-filetype', image.type);
       wrapper.setAttribute('data-filename', image.name);
+      wrapper.onclick = this.filmStripPressed.bind(this);
       preview.src = window.URL.createObjectURL(image.blob);
-      preview.onclick = this.filmStripPressed.bind(this);
       preview.onload = function() {
         window.URL.revokeObjectURL(this.src);
       };
@@ -863,7 +873,6 @@ var Camera = {
     if (this._position) {
       this._config.position = this._position;
     }
-    this._shutterSound.play();
     this._cameraObj
       .takePicture(this._config, this.takePictureSuccess.bind(this));
   },
