@@ -371,8 +371,10 @@ var WindowManager = (function() {
     // Give the focus to the frame
     frame.focus();
 
-    // Set homescreen visibility to false
-    toggleHomescreen(false);
+    if (!TrustedUIManager.isVisible()) {
+      // Set homescreen visibility to false
+      toggleHomescreen(false);
+    }
 
     // Set displayedApp to the new value
     displayedApp = frame.dataset.frameOrigin;
@@ -802,7 +804,7 @@ var WindowManager = (function() {
   }
 
   function restoreCurrentApp() {
-    toggleHomescreen(true);
+    toggleHomescreen(false);
     var frame = getAppFrame(displayedApp);
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
@@ -816,7 +818,7 @@ var WindowManager = (function() {
   function toggleHomescreen(visible) {
     var homescreenFrame = ensureHomescreen();
     if (homescreenFrame)
-      homescreenFrame.setVisible(true);
+      homescreenFrame.setVisible(visible);
   }
 
   // Switch to a different app
@@ -947,7 +949,7 @@ var WindowManager = (function() {
     // run out of process. All other apps will be run OOP.
     //
     var outOfProcessBlackList = [
-      'Browser',
+      'Browser'
       // Requires nested content processes (bug 761935).  This is not
       // on the schedule for v1.
     ];
