@@ -1023,6 +1023,10 @@ var WindowManager = (function() {
       frame.classList.add('fullscreen-app');
     }
 
+    // A frame should start with visible false
+    if ('setVisible' in frame)
+      frame.setVisible(false);
+
     numRunningApps++;
   }
 
@@ -1478,9 +1482,9 @@ var WindowManager = (function() {
 
     if (document.mozFullScreen) {
       document.mozCancelFullScreen();
-    } else if (inlineActivityFrame) {
-      stopInlineActivity();
-    } else if (displayedApp !== homescreen || inTransition) {
+    }
+    
+    if (displayedApp !== homescreen || inTransition) {
       if (displayedApp != ftuURL) {
         setDisplayedApp(homescreen);
       } else {
