@@ -20,6 +20,7 @@
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
     <link rel="stylesheet" type="text/css" href="style/apps.css"/>
+    <link rel="stylesheet" type="text/css" href="style/updates.css"/>
 
     <!-- Shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
@@ -606,7 +607,7 @@
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1 data-l10n-id="hotspotSettings"> HotSpot Settings </h1>
+        <h1 data-l10n-id="hotspotSettings"> Hotspot Settings </h1>
       </header>
 
       <ul>
@@ -648,7 +649,7 @@
             <input type="checkbox" data-type="switch" name="tethering.wifi.enabled"/>
             <span></span>
           </label>
-          <a data-l10n-id="wifi-hotspot">Wi-Fi HotSpot</a>
+          <a data-l10n-id="wifi-hotspot">Wi-Fi Hotspot</a>
         </li>
         <li class="description" data-l10n-id="internetSharing-wifi-desc">
           Allow other devices to share my phone’s Internet connection by connecting via Wi-Fi.
@@ -671,7 +672,7 @@
         <li>
           <label>
             <button data-href="#hotspot-wifiSettings"
-              data-l10n-id="hotspotSettings">HotSpot Settings</button>
+              data-l10n-id="hotspotSettings">Hotspot Settings</button>
           </label>
         </li>
       </ul>
@@ -1780,7 +1781,11 @@
               data-l10n-id="check-update-now"> Check Now </button>
           </label>
         </li>
-        <li id="update-status" class="description" hidden></li>
+        <li id="update-status" class="description update-status">
+          <p class="description general-information"
+              data-l10n-id="checking-for-update">Checking for updates...</p>
+          <p class="description system-update-status"></p>
+        </li>
       </ul>
 
       <header>
